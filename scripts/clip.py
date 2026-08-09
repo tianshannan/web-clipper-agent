@@ -732,6 +732,8 @@ def main():
     parser.add_argument("--no-images", action="store_true", help="Skip image download")
     parser.add_argument("--no-dedup", action="store_true", help="Skip dedup check")
     parser.add_argument("--rate", type=float, default=1.0, help="Rate limit between requests (seconds)")
+    parser.add_argument("--update-moc", action="store_true", help="Update MOC navigation page")
+    parser.add_argument("--moc-name", default="MOC-CRA学习文章", help="MOC file name (default: MOC-CRA学习文章)")
     parser.add_argument("--output", help="Save results to JSON file")
     args = parser.parse_args()
 
@@ -754,6 +756,15 @@ def main():
                     "titles": sorted(list(result["titles"])),
                 }, f, ensure_ascii=False, indent=2)
             print(f"Saved to: {args.output}")
+        return
+
+    if args.update_moc:
+        WebClipper.update_moc(
+            vault_path=args.vault or clipper.vault_path,
+            base_dir=args.base_dir,
+            moc_name=args.moc_name,
+        )
+        print(f"MOC 更新完成: {args.moc_name}")
         return
 
     if args.batch:

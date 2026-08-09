@@ -9,7 +9,8 @@
 - **自动分类**：18 个 CRA 领域关键词匹配 + 质量评分筛选
 - **图片本地化**：微信 data-src 图片提取、hash 去重下载到 attachments/
 - **标签体系**：P.A.I.R v5 格式，`状态/待消化` + `A/临床试验监查/{子领域}`
-- **MOC 导航**：自动生成 Obsidian MOC 索引页
+- **MOC 导航**：自动生成/更新 Obsidian MOC 索引页
+- **IMA 知识库集成**：支持从 IMA 知识库获取文章 URL 后批量剪藏
 
 ## 安装
 
@@ -28,13 +29,23 @@ python scripts/clip.py --url "https://mp.weixin.qq.com/s/xxx" --category "知情
 ### 批量剪藏
 
 ```bash
+# 默认间隔1秒
 python scripts/clip.py --batch articles.json --output results.json
+
+# 大批量时建议加大间隔
+python scripts/clip.py --batch articles.json --output results.json --rate 2
 ```
 
 ### 扫描 Vault 去重
 
 ```bash
 python scripts/clip.py --scan-vault --output existing_urls.json
+```
+
+### 更新 MOC 导航页
+
+```bash
+python scripts/clip.py --update-moc --vault "D:\BaiduSyncdisk\陈小虎同学" --base-dir "2-Projects/CRA学习文章"
 ```
 
 ### Python 模块调用
@@ -47,6 +58,9 @@ from clip import WebClipper
 clipper = WebClipper(vault_path="D:\\MyVault")
 result = clipper.clip_url(url, title="标题", category="知情同意", account="公众号名")
 results = clipper.clip_batch(articles_list, dedup=True)
+
+# 更新MOC
+WebClipper.update_moc(vault_path, base_dir="2-Projects/CRA学习文章")
 ```
 
 ## 输出格式
@@ -75,6 +89,28 @@ Markdown 正文（含本地图片链接 attachments/img-hash.jpg）
 **来源**：[标题](URL)
 **公众号**：公众号名
 **剪藏时间**：2026-08-08 15:42
+```
+
+## IMA 知识库集成
+
+从 IMA 知识库获取文章 URL 后剪藏：
+
+```python
+import subprocess, json, time
+
+# 调用 IMA API 获取微信原始 URL
+result = subprocess.run(
+    ["node", "ima_api.cjs", "openapi/wiki/v1/get_media_info",
+     json.dumps({"media_id": media_id}),
+     json.dumps({"clientId": CLIENT_ID, "apiKey": API_KEY})],
+    capture_output=True, encoding="utf-8",  # Windows 必须加 encoding='utf-8'
+    timeout=30
+)
+data = json.loads(result.stdout)
+url = data["data"]["url_info"]["url"]
+
+# 收集后批量剪藏
+# python scripts/clip.py --batch batch_clip.json --output results.json --rate 2
 ```
 
 ## 微信公众号特殊处理

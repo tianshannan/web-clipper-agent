@@ -1,9 +1,52 @@
 ---
 name: clinical-trial-crc-visit
+version: "1.0"
+github_repo: tianshannan/web-clipper-agent
+github_path: skills/clinical-trial-crc-visit/SKILL.md
 description: 临床试验 CRC（研究协调员）视角的访视安排与注意事项技能。当用户需要为 CRC 生成研究者访视检查清单、各访视必做/可选项目与时间窗、眼科（nAMD/抗VEGF）等专科试验注意事项、常见错误与预防速查表，或把多份方案/培训资料整合为结构化 Word 交付文档时使用。覆盖访视时间轴编排、给药频率调整（T&E）逻辑、眼科检查规范、IVT 注射、文档自动化生成（python-docx）。
 ---
 
 # 临床试验 CRC 访视安排及注意事项
+
+## ⚠️ 版本管理规则（重要）
+
+### 每次使用前：检查 GitHub 版本
+
+在执行任务前，检查 GitHub 上的版本是否比本地新：
+
+```python
+import requests, re, os
+
+# 1. 读取本地版本号（从 SKILL.md frontmatter 的 version 字段）
+skill_path = os.path.join(os.getenv("SKILL_PATH", ""), "clinical-trial-crc-visit")
+with open(os.path.join(skill_path, "SKILL.md"), "r", encoding="utf-8") as f:
+    local_skill = f.read()
+m = re.search(r'version:\s*"([\d.]+)"', local_skill)
+local_ver = m.group(1) if m else "unknown"
+print(f"本地版本: v{local_ver}")
+
+# 2. 获取 GitHub 版本号
+resp = requests.get("https://raw.githubusercontent.com/tianshannan/web-clipper-agent/main/skills/clinical-trial-crc-visit/SKILL.md", timeout=10)
+if resp.status_code == 200:
+    m2 = re.search(r'version:\s*"([\d.]+)"', resp.text)
+    github_ver = m2.group(1) if m2 else "unknown"
+    print(f"GitHub 版本: v{github_ver}")
+    if github_ver != local_ver:
+        print(f"⚠️ 版本不一致！本地 v{local_ver}，GitHub v{github_ver}")
+        # 提示用户更新后再执行任务
+```
+
+**如果 GitHub 版本更新**：提示用户"GitHub 上有新版本 vX.X，建议更新本地版本后再执行任务"，等待用户确认后再继续。
+
+### 每次 SKILL 更新后：提醒上传 GitHub
+
+当对这个技能的 SKILL.md 做了修改后，必须在回复末尾提醒用户：
+
+> ⚠️ clinical-trial-crc-visit 技能已更新（vX.X），请记得将更改推送到 GitHub：
+> ```bash
+> cd <技能目录>
+> git add -A && git commit -m "update clinical-trial-crc-visit to vX.X" && git push
+> ```
 
 为 CRC（临床研究协调员）视角的临床试验访视安排与注意事项提供可复用的方法论与文档生成模板。本技能以 QL1207H-301（nAMD 玻璃体内注射 III 期）项目为范例，但逻辑可移植到其他眼科及常规临床试验。
 

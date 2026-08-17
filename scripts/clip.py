@@ -185,7 +185,11 @@ class WebClipper:
 
     @staticmethod
     def _detect_vault_path():
-        """从 obsidian.json 自动检测 Vault 路径，优先 open=True 的 Vault。"""
+        """检测 Vault 路径。优先已知当前路径，其次 obsidian.json。"""
+        # 1. 优先使用已知当前路径（避免 obsidian.json 中旧 Vault 仍标记 open=true）
+        if os.path.exists(DEFAULT_VAULT_PATH):
+            return DEFAULT_VAULT_PATH
+        # 2. 从 obsidian.json 检测
         config_path = os.path.expandvars(r"%APPDATA%\Obsidian\obsidian.json")
         if os.path.exists(config_path):
             try:
@@ -201,9 +205,8 @@ class WebClipper:
                         return path
             except (json.JSONDecodeError, IOError):
                 pass
-        # Fallback: 当前已知路径
-        for p in [DEFAULT_VAULT_PATH,
-                  r"D:\BaiduSyncdisk\陈小虎同学",
+        # 3. Fallback: 历史路径
+        for p in [r"D:\BaiduSyncdisk\陈小虎同学",
                   r"C:\Users\陈虎\Nutstore\1\陈小虎同学"]:
             if os.path.exists(p):
                 return p
